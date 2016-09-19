@@ -12,20 +12,45 @@ userVariables.initialExtent = {centerPoint: {lat:37.8, lon:-96}, zoomLevel: 4};
 //userVariables.initialExtent = {centerPoint: {lat: -25.08, lon: 134.26}, zoomLevel: 4};
 
 
-//Specify the tile layer to show in the background of the map.  Use the provider
-//function of Leaflet, which points to the major provider, or specify a tile
-//layer not available in the provider object
-//userVariables.tileLayer = L.tileLayer.provider('OpenStreetMap.BlackAndWhite')
-//OpenStreetMap Mapnik
-userVariables.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-	maxZoom: 19,
-	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-});
-//Example of specifying a tile layer that is not in provider, in this case
-//a MapBox source:
-/*
-var mapboxURL = '<your URL here>';
-userVariables.tileLayer = L.tileLayer(mapboxURL, {id: 'mapbox.streets', attribution: 'Mapbox Test Layer'});
-*/
+//Specify the tile layer to show in the background of the map using either the
+//provider from leaflet-extras or by setting the parameters yourself
+
+//Using leaflet provider, as described at https://github.com/leaflet-extras/leaflet-providers
+userVariables.tileLayer = L.tileLayer.provider('OpenStreetMap.BlackAndWhite');
+
+//Example setting the parameters manually, in this case for OpenStreetMap Mapnik
+//userVariables.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//	maxZoom: 19,
+//	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+//});
+
+//Load and configure the regions to use for data display.  Regions must be in 
+//GeoJSON format.  Multiple regions can be set to show data at different zoom
+//levels with different join fields.  This array must contain at least one element.
+userVariables.regionsConfig = [{
+    //The geoJSON containing the regions.  You _could_ put the whole geoJSON payload
+    //here, but that might make things a bit difficult to read
+    regionData: test_region_level1,
+    //The chart needs 2 fields to render the data.  First, the field in the data
+    //source containing the region name/id
+    sourceField: 'Region Name 1',
+    //next, the name of the field in the geoJSON containing the same name/id
+    regionField: 'name_1',
+    //optionally you can set the min/max zoom levels for this layer
+    //minZoomLevel not set, so will be shown out to global
+    maxZoomLevel: 5 //won't show when zoomed in past level 10
+},{
+    regionData: test_region_level2,
+    sourceField: 'Region Name 2',
+    regionField: 'name_2',
+    minZoomLevel: 6,
+    maxZoomLevel: 11
+},{
+    regionData: test_region_level3,
+    sourceField: 'Region Name 3',
+    regionField: 'name_3',
+    minZoomLevel: 12
+    //maxZoomLevel not set, so will be shown all the way to most detailed
+}];
 
 controller.scope.userVariables = userVariables;

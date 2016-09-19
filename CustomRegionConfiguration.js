@@ -45,8 +45,6 @@ var getMetrics = function() {
 var stateAttribute = getDimensions().getGroup(0).name;
 var countyAttribute = controller.variables.County;
 var zipcodeAttribute = controller.variables['Zip Code'];
-var apiKey = controller.variables['Tile Provider API Key'];
-var tileProvider = controller.variables['Tile Provider'];
 var linearScale = d3.scale.linear();
 var quantileScale = d3.scale.quantile();
 var level = 'states';
@@ -95,28 +93,6 @@ $(div).addClass('map');
 
 var map = L.map('map-' + uuid).setView([37.8, -96], 4);
 
-if (tileProvider === 'CloudMade') {
-    L.tileLayer.provider('CloudMade', {
-        apiKey: apiKey,
-        styleID: '22677'
-    }).addTo(map);
-    map.attributionControl.removeFrom(map);
-} else if (tileProvider === 'MapBox') {
-    L.tileLayer.provider('MapBox.' + apiKey).addTo(map);
-    map.attributionControl.removeFrom(map);
-}  else if (tileProvider === 'MapQuest') {
-    L.tileLayer.provider('MapQuestOpen.OSM').addTo(map);
-} else if (tileProvider === 'OpenMapSurfer (no API key required)') {
-    L.tileLayer.provider('OpenMapSurfer.Grayscale').addTo(map);
-} else {
-    L.tileLayer.provider('OpenStreetMap.BlackAndWhite').addTo(map);
-}
-
-//new L.Control.GeoSearch({
-//    provider: new L.GeoSearch.Provider.OpenStreetMap(),
-//    showMarker: false,
-//    zoomLevel: 13
-//}).addTo(map);
 
 controller.selection = function(selected) {
     if (selected) {
