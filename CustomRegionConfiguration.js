@@ -142,7 +142,7 @@ map.on('moveend', function(e) {
         var newCenteredStateName;
         var inBounds;
         var mapCenterLatLng = map.getCenter();
-
+//calculate which state is centered on the map
         for (var stateName in stateBounds) {
             if (stateBounds.hasOwnProperty(stateName)) {
                 var boundsForState = stateBounds[stateName];
@@ -218,7 +218,7 @@ map.on('moveend', function(e) {
                 onEachFeature: onEachFeature
             }).addTo(map);
 
-            //Zip Codes
+//Zip Codes
         } else {
             if (level === 'zipcodes' &&
                 newCenteredStateName === centeredStateName) {
@@ -260,6 +260,7 @@ map.on('moveend', function(e) {
         }
 
     } else if (map.getZoom() < firstZoomLevel && centeredStateName) {
+      //if we are out past firstZoomLevel switch everything back to state
         map.removeLayer(geoJson);
 
         if (filter) {

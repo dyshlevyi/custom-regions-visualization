@@ -33,23 +33,24 @@ userVariables.regionsConfig = [{
     regionData: test_region_level1,
     //The chart needs 2 fields to render the data.  First, the field in the data
     //source containing the region name/id
-    sourceField: 'Region Name 1',
+    groupName: 'region_name1',
     //next, the name of the field in the geoJSON containing the same name/id
     regionField: 'name_1',
     //optionally you can set the min/max zoom levels for this layer
     //minZoomLevel not set, so will be shown out to global
+    //if zoom levels overlap only the first one hit will be shown
     maxZoomLevel: 5 //won't show when zoomed in past level 10
 },{
     regionData: test_region_level2,
-    sourceField: 'Region Name 2',
+    groupName: 'region_name2',
     regionField: 'name_2',
     minZoomLevel: 6,
-    maxZoomLevel: 11
+    maxZoomLevel: 8
 },{
     regionData: test_region_level3,
-    sourceField: 'Region Name 3',
+    groupName: 'region_name3',
     regionField: 'name_3',
-    minZoomLevel: 12
+    minZoomLevel: 9
     //maxZoomLevel not set, so will be shown all the way to most detailed
 }];
 

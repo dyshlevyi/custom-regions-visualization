@@ -2,7 +2,6 @@
  * Copyright (C) Zoomdata, Inc. 2012-2016. All rights reserved.
  */
 /* global controller */
-console.log('zoomdata object: ', zd);
 userVariables = controller.scope.userVariables;
 
 var dataLookup = {}; //this will contain the results from Zoomdata
@@ -24,10 +23,30 @@ userVariables.tileLayer.addTo(map);
 function regionInZoomRange(region) {
     var result = false;
     var zoomLevel = map.getZoom();
-    if(value >= region.minZoomLevel && zoomLevel <= region.maxZoomLevel) {
+    var minZoomLevel = region.minZoomLevel || 0;
+    var maxZoomLevel = region.maxZoomLevel || 18; //18 is the default max zoom for leaflet TileLayer
+    if(zoomLevel >= minZoomLevel && zoomLevel <= maxZoomLevel) {
         result = true;
     }
     return(result);
+}
+
+// Given a zoom level set the currently visible layer
+//and associated grouping in Zoomdata query
+//TODO: filtering based on parent layer in view, like we do with states
+function setCurrentLayer() {
+    userVariables.regionsConfig.forEach(function(currRegion) {
+        if(regionInZoomRange(currRegion)) {
+            currRegion.mapLayer.addTo(map);
+            var currGroup = controller.dataAccessors.region.getGroup();
+            currGroup.name = currRegion.groupName;
+            currGroup.limit = currRegion.regionData.features.length;
+console.log('currGroup: ', currGroup);
+            controller.dataAccessors.region.setGroup((currRegion.groupName, currGroup));
+        } else {
+            map.removeLayer(currRegion.mapLayer);
+        }
+    });
 }
 
 function getMetrics()  {
@@ -45,7 +64,6 @@ function getMetrics()  {
 }
 
 function style(feature) {
-console.log('styling ', feature);
     var id;
     var fillColor = 'rgb(245,245,245)'; //default to light grey
     
@@ -59,11 +77,8 @@ console.log('styling ', feature);
         }
     }
  
-console.log('style id is ', id);
     if (dataLookup && id in dataLookup) {
-console.log('setting fill color for ', dataLookup[id]);
         fillColor = getMetrics().Color.color(dataLookup[id]);
-console.log('Fill color for ', id, ' is ', fillColor, ' for value ', dataLookup[id])
     }
 
     return {
@@ -76,23 +91,23 @@ console.log('Fill color for ', id, ' is ', fillColor, ' for value ', dataLookup[
     };
 }
 
-function addCustomRegionsToMap(customRegions, map, style) {
-    console.log('adding custom regions to map', customRegions);
+function createCustomRegionLayers(customRegions, map, style) {
     customRegions.forEach(function(region) {
         region.mapLayer = L.geoJson(region.regionData, {
             style: style
-        }).addTo(map);
+        });
     });
 }
 
-addCustomRegionsToMap(userVariables.regionsConfig, map, style);
+createCustomRegionLayers(userVariables.regionsConfig, map, style);
+setCurrentLayer();
 
 map.on('moveend', function(e) {
-    console.log('map moved, ', e);
+    //console.log('map moved, ', e);
 });
 
 map.on('zoomend', function(e) {
-    console.log('map zoomed, ', e);
+    setCurrentLayer();
 });
 
 // Functions specific to the Zoomdata custom visualization
@@ -114,7 +129,6 @@ controller.selection = function(selected) {
 
 controller.update = function(data, progress) {
     // Called when new data arrives
-    console.log('new data from Zoomdata: ', data);
     dataLookup = {};
     for (var i = 0; i < data.length; i++) {
         var item = data[i];
