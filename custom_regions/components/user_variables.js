@@ -39,18 +39,18 @@ userVariables.regionsConfig = [{
     //optionally you can set the min/max zoom levels for this layer
     //minZoomLevel not set, so will be shown out to global
     //if zoom levels overlap only the first one hit will be shown
-    maxZoomLevel: 5 //won't show when zoomed in past level 10
+    maxZoomLevel: 4 //won't show when zoomed in past level 10
 },{
     regionData: test_region_level2,
     groupName: 'region_name2',
     regionField: 'name_2',
-    minZoomLevel: 6,
-    maxZoomLevel: 8
+    minZoomLevel: 5,
+    maxZoomLevel: 7
 },{
     regionData: test_region_level3,
     groupName: 'region_name3',
     regionField: 'name_3',
-    minZoomLevel: 9
+    minZoomLevel: 8
     //maxZoomLevel not set, so will be shown all the way to most detailed
 }];
 

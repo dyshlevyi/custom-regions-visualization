@@ -20,6 +20,7 @@ var map = L.map('map-' + uuid).setView(userVariables.initialExtent.centerPoint,
 
 userVariables.tileLayer.addTo(map);
 
+// Used when the view changes (zooming) to detect what region set to use
 function regionInZoomRange(region) {
     var result = false;
     var zoomLevel = map.getZoom();
@@ -37,16 +38,28 @@ function regionInZoomRange(region) {
 function setCurrentLayer() {
     userVariables.regionsConfig.forEach(function(currRegion) {
         if(regionInZoomRange(currRegion)) {
+            currRegion.visible = true;
             currRegion.mapLayer.addTo(map);
             var currGroup = controller.dataAccessors.region.getGroup();
             currGroup.name = currRegion.groupName;
             currGroup.limit = currRegion.regionData.features.length;
-console.log('currGroup: ', currGroup);
+console.log('Changed group to ', currGroup);
             controller.dataAccessors.region.setGroup((currRegion.groupName, currGroup));
         } else {
             map.removeLayer(currRegion.mapLayer);
+            currRegion.visible = false;
         }
     });
+}
+
+function getVisibleLayer() {
+    var result = userVariables.regionsConfig.find(function(currRegion) {
+        if(currRegion.visible === undefined) {
+            return false;
+        }
+        return currRegion.visible;
+    });
+    return result;
 }
 
 function getMetrics()  {
@@ -94,8 +107,10 @@ function style(feature) {
 function createCustomRegionLayers(customRegions, map, style) {
     customRegions.forEach(function(region) {
         region.mapLayer = L.geoJson(region.regionData, {
-            style: style
+            style: style,
+            onEachFeature: onEachFeature
         });
+console.log('region ', region.groupName, ' has ', region.regionData, ' element');
     });
 }
 
@@ -109,6 +124,69 @@ map.on('moveend', function(e) {
 map.on('zoomend', function(e) {
     setCurrentLayer();
 });
+
+function highlightFeature(e) {
+    var layer = e.target;
+    var feature = e.target.feature;
+    layer.setStyle({
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera) {
+        layer.bringToFront();
+    }
+
+    currRegion = getVisibleLayer();
+    featureId = feature.properties[currRegion.regionField];
+    if (!(featureId in dataLookup)) {
+        return;
+    }
+
+    var data = dataLookup[featureId];
+    controller.tooltip.show({
+        event: e.originalEvent,
+        data: function() {
+            return data;
+        },
+        color: function() {
+            if (!(featureId in dataLookup)) {
+                return;
+            }
+            return getMetrics().Color.color(dataLookup[featureId]);
+        }
+    });
+}
+
+function resetHighlight(e) {
+    getVisibleLayer().mapLayer.resetStyle(e.target);
+    controller.tooltip.hide();
+}
+
+function featureDetails(e) {
+    var feature = e.target.feature;
+
+    if (!(currRegion.regionField in dataLookup)) {
+        return;
+    }
+
+    controller.menu.show({
+        event: e.originalEvent,
+        data: function() {
+            return dataLookup[currRegion.regionField];
+        }
+    });
+}
+
+function onEachFeature(feature, layer) {
+    layer.on({
+        mousemove: highlightFeature,
+        mouseout: resetHighlight,
+        click: featureDetails
+    });
+}
 
 // Functions specific to the Zoomdata custom visualization
 controller.selection = function(selected) {
