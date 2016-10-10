@@ -102,12 +102,14 @@ function regionInZoomRange(region) {
 function setCurrentLayer() {
     userVariables.regionsConfig.forEach(function(currRegion) {
         if(regionInZoomRange(currRegion)) {
-            currRegion.visible = true;
-            currRegion.mapLayer.addTo(map);
-            var currGroup = controller.dataAccessors.region.getGroup();
-            currGroup.name = currRegion.groupName;
-            currGroup.limit = currRegion.regionData.features.length;
-            controller.dataAccessors.region.setGroup((currRegion.groupName, currGroup));
+            if(!currRegion.visible) {
+                currRegion.visible = true;
+                currRegion.mapLayer.addTo(map);
+                var currGroup = controller.dataAccessors.region.getGroup();
+                currGroup.name = currRegion.groupName;
+                currGroup.limit = currRegion.regionData.features.length;
+                controller.dataAccessors.region.setGroup((currRegion.groupName, currGroup));
+            }
         } else {
             map.removeLayer(currRegion.mapLayer);
             currRegion.visible = false;
@@ -155,23 +157,66 @@ function style(feature) {
     if (dataLookup && id in dataLookup) {
         fillColor = getMetrics().Color.color(dataLookup[id]);
     }
-
-    return {
-        weight: 2,
-        opacity: 1,
-        color: 'white',
-        dashArray: '3',
-        fillOpacity: 0.7,
-        fillColor: fillColor
-    };
+    
+    //style depends on shape.  For lines we don't have a fill, just border.  Points
+    //are circles, so they are treated same as polygons
+    switch(feature.geometry.type) {
+    case 'LineString':
+    case 'MultiLineString':
+        var sym = {
+            weight: 3,
+            opacity: 1,
+            color: fillColor,
+        };
+        break;
+    default:
+        var sym = {
+            weight: 2,
+            opacity: 1,
+            color: 'white',
+            dashArray: '3',
+            fillOpacity: 0.7,
+            fillColor: fillColor
+        };
+        break;
+    }
+    
+    return sym;
 }
 
+
+
 function createCustomRegionLayers(customRegions, map, style) {
+    //Note, we are assuming that all features in a geojson are same type - not
+    //mixing points with polygons, etc.
     customRegions.forEach(function(region) {
-        region.mapLayer = L.geoJson(region.regionData, {
-            style: style,
-            onEachFeature: onEachFeature
-        });
+        //handle each shape type appropriately
+        switch(region.regionData.features[0].geometry.type) {
+        case 'Polygon':
+        case 'MultiPolygon':
+            region.mapLayer = L.geoJson(region.regionData, {
+                style: style,
+                onEachFeature: onEachFeature
+            });
+            break;
+        case 'Point':
+        case 'MultiPoint':
+            region.mapLayer = L.geoJson(region.regionData, {
+                pointToLayer: function(feature, latlng) {
+                    return L.circleMarker(latlng, style);
+                },
+                style: style,
+                onEachFeature:onEachFeature
+            });
+            break;
+        case 'LineString':
+        case 'MultiLineString':
+            region.mapLayer = L.geoJson(region.regionData, {
+                style: style,
+                onEachFeature: onEachFeature
+            });
+            break;
+        }
     });
 }
 
@@ -276,6 +321,7 @@ controller.update = function(data, progress) {
 
     userVariables.regionsConfig.forEach(function(region) {
         if(region.mapLayer !== undefined) {
+//here is the problem, setting style initially to wrong type
             region.mapLayer.setStyle(style);
         }
     });
