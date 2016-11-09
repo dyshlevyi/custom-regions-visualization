@@ -4,7 +4,7 @@ Custom Regions is a map visualization for use in [Zoomdata](http://www.zoomdata.
 
 As of version 2.3 the map visualizations in Zoomdata are only available for global countries, or for U.S. data at state, county, and zip code level.  The underlying data must have fields with names and values that match the existing code.  Administrators can use Chart Studio to create their own map visualization.  This sample does that, abstracting the region configuration information to make it easy to specify new regions.
 
-Installation instructions are on the [wiki in Bitbucket](https://bitbucket.org/MikeWerling/custom_regions/wiki/Home)
+Installation instructions are in the [docs folder](./docs/Home.md)
 
 # For More Information #
 Documentation on [creating a custom visualization](http://docs.zoomdata.com/creating-a-custom-chart-template)
